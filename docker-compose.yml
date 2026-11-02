@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-marketplace}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-only-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-marketplace}
+    volumes:
+      - marketplace_db:/var/lib/postgresql/data
+      - ./Back/src/db/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-marketplace} -d ${POSTGRES_DB:-marketplace}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  api:
+    build:
+      context: ./Back
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3001
+      DATABASE_URL: ${DATABASE_URL:-postgresql://marketplace:local-only-change-me@db:5432/marketplace}
+      SESSION_SECRET: ${SESSION_SECRET:-local-development-secret-change-before-deployment-32}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8080}
+      DEMO_MODE: ${DEMO_MODE:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./Front
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - api
+
+volumes:
+  marketplace_db:

@@ -1,0 +1,18 @@
+{
+  "name": "parsing-marketplace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack marketplace comparison demo: React frontend and Node.js API",
+  "workspaces": ["Front", "Back"],
+  "scripts": {
+    "dev:front": "npm run dev --workspace Front",
+    "dev:back": "npm run dev --workspace Back",
+    "build": "npm run build --workspace Front",
+    "test": "npm test --workspace Back",
+    "check": "npm run check --workspace Back"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  }
+}
